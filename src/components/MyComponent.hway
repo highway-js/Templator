@@ -1,0 +1,19 @@
+<script>
+	import AppService from '../services/AppService.ts'
+
+	const appService = AppService
+</script>
+
+<template>
+	<h1>{{ appService.title }}</h1>
+
+	@if { appService.items.length > 0 }
+	<ul>
+		@for { let item of appService.items }
+		<li>{{ item }}</li>
+		@end
+	</ul>
+	@end
+
+	<p>Готово</p>
+</template>

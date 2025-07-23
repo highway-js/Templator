@@ -1,43 +1,29 @@
-export interface TemplateConfig {
-	services: any[]
-	directives?: any[]
+export interface TemplateComponent {
+	template: string
+	getContext: () => Record<string, any>
 }
 
 export async function renderComponent(
-	path: string,
-	mountId: string = 'app'
-): Promise<void> {
-	const html = await fetch(path).then(res => res.text())
-
-	const configMatch = html.match(/@Template\s*\(([\s\S]*?)\)\s*<template>/)
-	if (!configMatch) throw new Error('Missing @Template declaration')
-
-	const config: TemplateConfig = eval(`(${configMatch[1]})`)
-	const services = config.services || []
-
-	const templateMatch = html.match(/<template>([\s\S]*?)<\/template>/)
-	if (!templateMatch) throw new Error('Missing <template> block')
-
-	const template = templateMatch[1].trim()
-
-	const context: Record<string, any> = {}
-
-	for (const service of services) {
-		const module = await import(`./services/${service.name}.js`)
-		const instance = module[service.name]
-		const alias = serviceNameToContextKey(service.name)
-
-		for (const key in instance) {
-			if (!(key in context)) {
-				context[key] = instance[key]
-			}
-		}
-	}
+	component: {
+		template: string
+		getContext: () => Record<string, any>
+	},
+	mountId = 'app'
+) {
+	const { template, getContext } = component
+	const context = getContext()
 
 	const rendered = compileTemplate(template, context)
 	document.getElementById(mountId)!.innerHTML = rendered
 }
 
+function extractContextFromTemplate(template: string): Record<string, any> {
+	// Для примера — парсим {{ AppService.title }} и подставляем объект из глобального окна
+	// Но лучше сделать более надёжный вариант, который пробрасывает переменные из импорта
+
+	// Здесь нужно улучшение под твой use case
+	return window as any
+}
 function serviceNameToContextKey(name: string): string {
 	return name.charAt(0).toLowerCase() + name.slice(1)
 }
